@@ -2,9 +2,11 @@ window.AstranovAuthBridge = {
   client: null,
   user: null,
   session: null,
+  siteId: null,
   async init(config = {}) {
-    const url = config.supabaseUrl || window.ASTRANOV_CENTRAL_DB?.url;
-    const key = config.supabaseAnonKey || window.ASTRANOV_CENTRAL_DB?.anonKey;
+    this.siteId = config.siteId || null;
+    const url = config.supabaseUrl || window.ASTRANOV_SITES_DEFAULTS?.supabaseUrl || window.ASTRANOV_CENTRAL_DB?.supabaseUrl;
+    const key = config.supabaseAnonKey || window.ASTRANOV_SITES_DEFAULTS?.supabaseAnonKey || window.ASTRANOV_CENTRAL_DB?.supabaseAnonKey;
     if (!url || !key || !window.supabase) return null;
     this.client = window.supabase.createClient(url, key, {
       auth: { persistSession: true, autoRefreshToken: true, storageKey: 'astranov_auth_v2' },
@@ -29,5 +31,16 @@ window.AstranovAuthBridge = {
     }
     return this;
   },
-  getCentralSession() { return this.session; },
+  getCentralSession() {
+    if (!this.user) return null;
+    return {
+      role: 'auditor',
+      email: this.user.email,
+      name: this.user.user_metadata?.full_name || this.user.user_metadata?.name || this.user.email?.split('@')[0],
+      userId: this.user.id,
+      token: this.session?.access_token,
+      access_token: this.session?.access_token,
+      central: true
+    };
+  },
 };

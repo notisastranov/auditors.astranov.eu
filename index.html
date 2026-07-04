@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Astranov Auditors · Finance Portal</title>
   <script src="core/astranov-shell.js"></script>
+  <script src="core/superbooking-config.js"></script>
   <style>
     :root{--bg:#050b18;--panel:#0a1628;--line:rgba(73,183,255,.35);--text:#eef8ff;--muted:#9bc7e8;--gold:#49b7ff;--ok:#69f5d0;--warn:#ffb45f;font-family:Inter,system-ui,sans-serif}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}
@@ -66,12 +67,12 @@
 <script src="core/astranov-auth-bridge.js"></script>
 <script src="core/auditor-api.js"></script>
 <script>
-const CONFIG = {
+const CONFIG = applyCentralDatabase({
   siteId: 'auditors',
   domain: 'auditors.astranov.eu',
-  supabaseUrl: window.ASTRANOV_CENTRAL_DB?.url || '',
-  supabaseAnonKey: window.ASTRANOV_CENTRAL_DB?.anonKey || '',
-};
+  supabaseUrl: window.ASTRANOV_CENTRAL_DB?.supabaseUrl || '',
+  supabaseAnonKey: window.ASTRANOV_CENTRAL_DB?.supabaseAnonKey || '',
+});
 const $ = (s) => document.querySelector(s);
 const esc = (s) => (s ?? '').toString().replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const money = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EUR';
