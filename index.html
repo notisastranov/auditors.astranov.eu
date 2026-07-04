@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Astranov Auditors · Finance Portal</title>
+  <script src="core/astranov-shell.js"></script>
+  <style>
+    :root{--bg:#050b18;--panel:#0a1628;--line:rgba(73,183,255,.35);--text:#eef8ff;--muted:#9bc7e8;--gold:#49b7ff;--ok:#69f5d0;--warn:#ffb45f;font-family:Inter,system-ui,sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}
+    .app{max-width:1100px;margin:0 auto;padding:12px 14px 80px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 0;position:sticky;top:0;background:rgba(5,11,24,.92);backdrop-filter:blur(10px);z-index:5}
+    .brand b{display:block;font-size:18px;letter-spacing:2px;color:#dff4ff}
+    .brand span{font-size:11px;color:var(--muted)}
+    button,.btn{border:1px solid var(--line);background:rgba(73,183,255,.12);color:var(--text);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+    .tab{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+    .tab.active{background:rgba(73,183,255,.2);color:var(--gold);border-color:var(--gold)}
+    .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+    input,select{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#071428;color:var(--text)}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:12px 0}
+    .kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+    .kpi b{display:block;font-size:20px;color:var(--gold)}
+    .kpi span{font-size:10px;color:var(--muted)}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+    th{color:var(--muted);font-size:10px;text-transform:uppercase}
+    .status{padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:10px}
+    .ok{color:var(--ok)}.warn{color:var(--warn)}
+    .hidden{display:none!important}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0a2038;border:1px solid var(--line);padding:10px 14px;border-radius:12px;display:none}
+    .toast.show{display:block}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><b>Astranov Auditors</b><span>auditors.astranov.eu · central finance</span></div>
+    <button id="loginBtn" type="button">Sign in</button>
+  </header>
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="payments">Payments</button>
+    <button class="tab" data-tab="invoices">Invoices</button>
+    <button class="tab" data-tab="orders">Orders</button>
+  </div>
+  <div class="filters">
+    <div><label class="muted">From</label><input id="fFrom" type="date"></div>
+    <div><label class="muted">To</label><input id="fTo" type="date"></div>
+    <div><label class="muted">Vendor</label><select id="fVendor"><option value="">All vendors</option></select></div>
+    <div><label class="muted">Driver</label><select id="fDriver"><option value="">All drivers</option></select></div>
+    <div style="display:flex;align-items:end"><button id="applyBtn" type="button">Apply filters</button></div>
+  </div>
+  <section id="view-dashboard">
+    <div class="kpis" id="kpis"></div>
+    <div class="card"><h3 style="margin:0 0 8px;color:var(--gold)">Invoice health</h3><p id="invoiceHealth" class="muted"></p></div>
+    <div class="card"><h3 style="margin:0 0 8px">Recent orders</h3><div id="recentOrders"></div></div>
+  </section>
+  <section id="view-payments" class="hidden"><div class="card" id="paymentsTable"></div></section>
+  <section id="view-invoices" class="hidden"><div class="card" id="invoicesTable"></div></section>
+  <section id="view-orders" class="hidden"><div class="card" id="ordersTable"></div></section>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="core/astranov-auth-bridge.js"></script>
+<script src="core/auditor-api.js"></script>
+<script>
+const CONFIG = {
+  siteId: 'auditors',
+  domain: 'auditors.astranov.eu',
+  supabaseUrl: window.ASTRANOV_CENTRAL_DB?.url || '',
+  supabaseAnonKey: window.ASTRANOV_CENTRAL_DB?.anonKey || '',
+};
+const $ = (s) => document.querySelector(s);
+const esc = (s) => (s ?? '').toString().replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const money = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EUR';
+function toast(m) { $('#toast').textContent = m; $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'), 4000); }
+function filters() {
+  return {
+    from: $('#fFrom').value || null,
+    to: $('#fTo').value || null,
+    vendor_id: $('#fVendor').value || null,
+    driver_id: $('#fDriver').value || null,
+  };
+}
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
+  ['dashboard', 'payments', 'invoices', 'orders'].forEach((v) => {
+    $('#view-' + v).classList.toggle('hidden', v !== t);
+  });
+}
+function renderKpis(k) {
+  if (!k) return;
+  $('#kpis').innerHTML = [
+    ['orders', k.orders], ['goods', money(k.goods_eur)], ['delivery', money(k.delivery_eur)],
+    ['platform 3%', money(k.platform_eur)], ['driver payouts', money(k.driver_payouts_eur)],
+    ['invoices sent', k.invoices_sent], ['pending', k.invoices_pending],
+  ].map(([l, v]) => `<div class="kpi"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('');
+  $('#invoiceHealth').textContent = k.invoices_pending
+    ? `${k.invoices_pending} invoice(s) need review · ${k.invoices_sent} issued this period`
+    : `All ${k.invoices_sent} invoices issued for selected period`;
+}
+function tableOrders(rows) {
+  if (!rows?.length) return '<p class="muted">No orders</p>';
+  return '<table><thead><tr><th>ID</th><th>Vendor</th><th>Driver</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody>'
+    + rows.map((o) => {
+      const c = o.calc || {};
+      const total = c.total_eur ?? c.total_avc ?? c.goods_eur ?? 0;
+      return `<tr><td>${esc(o.short_id || o.id?.slice(0, 8))}</td><td>${esc(o.vendors?.name || o.vendor_id?.slice(0, 8))}</td><td>${esc(o.driver_name || '-')}</td><td>${money(total)}</td><td><span class="status">${esc(o.status)}</span></td><td>${esc((o.created_at || '').slice(0, 10))}</td></tr>`;
+    }).join('') + '</tbody></table>';
+}
+function tableInvoices(rows) {
+  if (!rows?.length) return '<p class="muted">No invoices</p>';
+  return '<table><thead><tr><th>Mark</th><th>Vendor</th><th>Subtotal</th><th>Delivery</th><th>Platform</th><th>Total</th><th>Status</th></tr></thead><tbody>'
+    + rows.map((i) => `<tr><td>${esc(i.mark || i.id)}</td><td>${esc(i.vendor_name)}</td><td>${money(i.subtotal)}</td><td>${money(i.delivery_fee)}</td><td>${money(i.platform_fee)}</td><td>${money(i.total)}</td><td class="${i.status === 'issued' ? 'ok' : 'warn'}">${esc(i.status)}</td></tr>`).join('')
+    + '</tbody></table>';
+}
+async function loadFilters() {
+  try {
+    const p = await AuditorApi.call(CONFIG, 'payments', filters());
+    $('#fVendor').innerHTML = '<option value="">All vendors</option>' + (p.vendors || []).map((v) => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');
+    $('#fDriver').innerHTML = '<option value="">All drivers</option>' + (p.drivers || []).map((d) => `<option value="${esc(d.id)}">${esc(d.display_name || 'Driver')}</option>`).join('');
+  } catch (e) { console.warn(e); }
+}
+async function refresh() {
+  if (!AstranovAuthBridge?.user) { toast('Sign in — auditor or accountant role required'); return; }
+  const f = filters();
+  try {
+    const dash = await AuditorApi.call(CONFIG, 'dashboard', f);
+    renderKpis(dash.kpis);
+    $('#recentOrders').innerHTML = tableOrders(dash.recent_orders);
+    const pay = await AuditorApi.call(CONFIG, 'payments', f);
+    $('#paymentsTable').innerHTML = '<h3>Payment ledger</h3>' + tableOrders(pay.orders)
+      + '<h3 style="margin-top:14px">Payout events</h3><p class="muted">' + (pay.events || []).slice(0, 30).map((e) => esc(e.detail || e.action)).join('<br>') + '</p>';
+    const inv = await AuditorApi.call(CONFIG, 'invoices', f);
+    $('#invoicesTable').innerHTML = tableInvoices(inv.rows);
+    const ord = await AuditorApi.call(CONFIG, 'orders', f);
+    $('#ordersTable').innerHTML = tableOrders(ord.rows);
+  } catch (e) {
+    toast(e.message || String(e));
+  }
+}
+async function init() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('from')) $('#fFrom').value = p.get('from');
+  if (p.get('to')) $('#fTo').value = p.get('to');
+  if (p.get('vendor_id')) setTimeout(() => { $('#fVendor').value = p.get('vendor_id'); }, 800);
+  const d = new Date();
+  if (!$('#fFrom').value) { const m = new Date(d.getFullYear(), d.getMonth(), 1); $('#fFrom').value = m.toISOString().slice(0, 10); }
+  if (!$('#fTo').value) $('#fTo').value = d.toISOString().slice(0, 10);
+  await AstranovAuthBridge.init(CONFIG);
+  $('#loginBtn').onclick = async () => {
+    if (AstranovAuthBridge.user) {
+      await AstranovAuthBridge.client.auth.signOut();
+      $('#loginBtn').textContent = 'Sign in';
+      return;
+    }
+    const email = prompt('Auditor email');
+    const password = prompt('Password');
+    if (!email || !password) return;
+    const { error } = await AstranovAuthBridge.client.auth.signInWithPassword({ email, password });
+    if (error) toast(error.message); else { $('#loginBtn').textContent = 'Logout'; await refresh(); }
+  };
+  if (AstranovAuthBridge.user) { $('#loginBtn').textContent = 'Logout'; await loadFilters(); await refresh(); }
+  else toast('Sign in with auditor or accountant role');
+  document.querySelectorAll('.tab').forEach((b) => b.onclick = () => switchTab(b.dataset.tab));
+  $('#applyBtn').onclick = refresh;
+  if (p.get('tab')) switchTab(p.get('tab'));
+}
+document.addEventListener('DOMContentLoaded', () => init().catch((e) => toast(e.message)));
+</script>
+</body>
+</html>
