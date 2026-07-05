@@ -1,3 +1,10 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/auth/:path*", "destination": "https://lkoatrkhuigdolnjsbie.supabase.co/auth/:path*" },
+    { "source": "/rest/:path*", "destination": "https://lkoatrkhuigdolnjsbie.supabase.co/rest/:path*" },
+    { "source": "/functions/v1/:path*", "destination": "https://lkoatrkhuigdolnjsbie.supabase.co/functions/v1/:path*" },
+    { "source": "/storage/v1/:path*", "destination": "https://lkoatrkhuigdolnjsbie.supabase.co/storage/v1/:path*" },
+    { "source": "/realtime/v1/:path*", "destination": "https://lkoatrkhuigdolnjsbie.supabase.co/realtime/v1/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
