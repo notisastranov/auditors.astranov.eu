@@ -43,6 +43,20 @@ td.num{text-align:right;font-family:ui-monospace,monospace}
 .emp-list .emp-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
 html.as-embed-shell body{background:var(--bg)}
 
+.auth-gate{margin:12px 0}
+.auth-gate.hidden{display:none!important}
+.auth-gate-inner{
+  background:linear-gradient(135deg,rgba(0,40,28,.5),rgba(10,30,50,.65));
+  border:1px solid rgba(0,221,153,.4);
+  border-radius:16px;
+  padding:20px 18px;
+  text-align:center;
+}
+.auth-gate-inner h2{margin:0 0 8px;font-size:16px;color:var(--green)}
+.auth-gate-inner p{margin:0 0 12px;font-size:13px;line-height:1.5;color:var(--text)}
+.auth-gate-inner .note{margin-top:12px;font-size:11px}
+.auth-gate-inner button{margin:4px 6px}
+
 /* ── Παραδοσιακά λογιστικά φύλλα & λογαριασμοί Τ ── */
 .doc-sheet{
   background:linear-gradient(180deg,#faf6ee 0%,#f3ecdf 100%);
