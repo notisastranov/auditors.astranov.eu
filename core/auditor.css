@@ -42,3 +42,88 @@ td.num{text-align:right;font-family:ui-monospace,monospace}
 .form-grid .span2{grid-column:1/-1}
 .emp-list .emp-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
 html.as-embed-shell body{background:var(--bg)}
+
+/* ── Παραδοσιακά λογιστικά φύλλα & λογαριασμοί Τ ── */
+.doc-sheet{
+  background:linear-gradient(180deg,#faf6ee 0%,#f3ecdf 100%);
+  color:#1a1a1a;
+  border:1px solid #c4b89a;
+  border-radius:4px;
+  padding:18px 20px 22px;
+  margin:12px 0;
+  box-shadow:0 2px 0 #d8cdb8,0 8px 24px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.6);
+  font-family:"Times New Roman",Georgia,serif;
+  position:relative;
+}
+.doc-sheet::before{
+  content:"";
+  position:absolute;inset:12px;
+  border:1px solid rgba(120,100,60,.18);
+  pointer-events:none;
+}
+.doc-header{text-align:center;border-bottom:2px double #3d3528;padding-bottom:10px;margin-bottom:14px}
+.doc-co{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4a4030}
+.doc-title{margin:6px 0 4px;font-size:17px;font-weight:700;letter-spacing:1px;color:#1a1408}
+.doc-sub{font-size:12px;color:#5a5040;margin:0}
+.doc-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:11px;color:#5a5040;margin-top:8px;padding-top:6px;border-top:1px solid #c4b89a}
+.doc-footer{margin-top:14px;padding-top:8px;border-top:1px dashed #b8a888;font-size:10px;color:#6a5a40;text-align:center}
+
+/* Λογαριασμός Τ */
+.t-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:12px}
+.t-account{
+  background:#fffef8;
+  border:1.5px solid #2a2418;
+  border-radius:2px;
+  font-size:11px;
+  break-inside:avoid;
+  page-break-inside:avoid;
+}
+.t-head{text-align:center;padding:8px 6px 4px;background:#f0e8d8;border-bottom:1.5px solid #2a2418}
+.t-code{font-weight:700;font-size:13px;margin-right:6px}
+.t-name{font-size:11px;color:#3a3020}
+.t-bar{height:3px;background:#2a2418;margin:0}
+.t-body{display:grid;grid-template-columns:1fr 2px 1fr;min-height:100px}
+.t-divider{background:#2a2418}
+.t-side{padding:6px 8px;vertical-align:top}
+.t-side-label{font-size:9px;font-weight:700;letter-spacing:1px;text-align:center;border-bottom:1px solid #c4b89a;padding-bottom:4px;margin-bottom:6px;color:#4a3820}
+.t-debit .t-side-label{color:#1a4a2a}
+.t-credit .t-side-label{color:#4a2818}
+.t-line{display:flex;justify-content:space-between;gap:4px;padding:2px 0;border-bottom:1px dotted #d8cdb8;font-size:10px}
+.t-line .t-date{color:#6a5a40;min-width:38px}
+.t-line .t-amt{font-family:ui-monospace,monospace;text-align:right;white-space:nowrap}
+.t-total{margin-top:6px;padding-top:4px;border-top:1.5px solid #2a2418;font-weight:700;font-size:10px;display:flex;justify-content:space-between}
+.t-balance{text-align:center;padding:6px;font-size:10px;font-weight:700;background:#f5eed8;border-top:1.5px solid #2a2418;color:#2a2010}
+
+/* Ισολογισμός σε σχήμα Τ (Ενεργητικό | Παθητικό) */
+.bs-t-sheet{display:grid;grid-template-columns:1fr 4px 1fr;gap:0;margin-top:10px;min-height:200px}
+.bs-t-mid{background:#2a2418}
+.bs-t-col{padding:8px 12px}
+.bs-t-col h4{margin:0 0 10px;font-size:12px;text-align:center;letter-spacing:1px;border-bottom:1.5px solid #2a2418;padding-bottom:6px}
+.bs-t-line{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dotted #c4b89a;font-size:11px}
+.bs-t-line.indent{padding-left:14px;font-size:10px;color:#4a4030}
+.bs-t-total{margin-top:10px;padding-top:8px;border-top:2px double #2a2418;font-weight:700;display:flex;justify-content:space-between;font-size:12px}
+.bs-t-eq{text-align:center;margin-top:12px;padding:8px;font-weight:700;font-size:12px;border:1.5px solid #2a2418;background:#f0e8d8}
+
+/* Παραδοσιακό φύλλο (ισοζύγιο, μισθοδοσία, καθολικό) */
+.sheet-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+.sheet-table th,.sheet-table td{border:1px solid #8a7a60;padding:5px 7px;text-align:left}
+.sheet-table th{background:#e8dcc8;font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:#2a2010}
+.sheet-table td.num{text-align:right;font-family:ui-monospace,monospace}
+.sheet-table tr.total-row td{font-weight:700;background:#f0e6d0;border-top:2px solid #2a2418}
+.sheet-table tr.section-row td{background:#e0d4bc;font-weight:700;font-size:10px;letter-spacing:.5px}
+.sheet-ruled{background:repeating-linear-gradient(180deg,transparent,transparent 22px,#d8cdb8 22px,#d8cdb8 23px);padding-top:4px}
+
+/* Γενικό καθολικό — σελίδα ανά λογαριασμό */
+.gl-page{margin-top:16px;padding-top:12px;border-top:2px dashed #b8a888}
+.gl-page:first-child{margin-top:0;padding-top:0;border-top:none}
+.gl-page-title{font-size:12px;font-weight:700;margin-bottom:8px;color:#2a2010}
+
+.card .doc-sheet{margin:0}
+.card:has(.doc-sheet){background:transparent;border:none;padding:0;overflow:visible}
+
+@media print{
+  body{background:#fff}
+  .topbar,.tabs,.filters,.banner,.toast,button{display:none!important}
+  .doc-sheet{box-shadow:none;border:1px solid #000;break-inside:avoid}
+  .card{background:transparent;border:none;padding:0}
+}
