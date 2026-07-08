@@ -52,25 +52,50 @@ window.AstranovAuthBridge = {
     };
     window.addEventListener('message', onAuthMsg);
 
-    if (window.self !== window.top) {
-      try { window.parent.postMessage({ type: 'astranov-auth-request' }, '*'); } catch (_) {}
-    } else if (window.opener) {
-      try { window.opener.postMessage({ type: 'astranov-auth-request' }, '*'); } catch (_) {}
-    } else if (new URLSearchParams(location.search).get('from_app') === '1') {
-      setTimeout(() => {
-        try { window.opener?.postMessage({ type: 'astranov-auth-request' }, '*'); } catch (_) {}
-      }, 400);
-    }
+    this._startAuthPoll();
 
     return this;
   },
 
+  _authPollTimer: null,
+
+  requestAuthFromAstranov() {
+    const targets = [];
+    if (window.opener && !window.opener.closed) targets.push(window.opener);
+    if (window.self !== window.top) targets.push(window.parent);
+    for (const t of targets) {
+      try { t.postMessage({ type: 'astranov-auth-request' }, '*'); } catch (_) {}
+    }
+    return targets.length > 0;
+  },
+
+  _startAuthPoll() {
+    if (this.user) return;
+    const fromApp = new URLSearchParams(location.search).get('from_app') === '1';
+    const inFrame = window.self !== window.top;
+    if (!fromApp && !inFrame && !window.opener) return;
+    let n = 0;
+    clearInterval(this._authPollTimer);
+    this.requestAuthFromAstranov();
+    this._authPollTimer = setInterval(() => {
+      if (this.user || ++n > 24) { clearInterval(this._authPollTimer); return; }
+      this.requestAuthFromAstranov();
+    }, 1500);
+  },
+
   async signInGoogle() {
     if (!this.client) return { error: { message: 'Auth unavailable' } };
+    if (this.requestAuthFromAstranov()) {
+      return { data: { bridged: true } };
+    }
+    const p = new URLSearchParams(location.search);
+    p.delete('shell');
+    p.delete('embed');
+    const redirectTo = 'https://auditors.astranov.eu' + location.pathname + '?' + p.toString();
     return this.client.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: location.origin + location.pathname + location.search,
+        redirectTo,
         queryParams: { prompt: 'select_account' },
       },
     });
