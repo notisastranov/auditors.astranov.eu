@@ -314,8 +314,27 @@ window.AuditorApp = {
     } catch (e) { console.warn(e); }
   },
 
+  updateAuthGate() {
+    const gate = this.$('#authGate');
+    const logged = !!AstranovAuthBridge?.user;
+    if (gate) gate.classList.toggle('hidden', logged);
+    const btn = this.$('#loginBtn');
+    if (btn) btn.textContent = logged ? 'Αποσύνδεση' : 'Σύνδεση Astranov';
+    const msg = this.$('#authGateMsg');
+    if (msg && !logged) {
+      const fromApp = new URLSearchParams(location.search).get('from_app') === '1';
+      msg.innerHTML = fromApp
+        ? 'Ανοίχθηκε από <strong>astranov.eu</strong> — πατήστε «Λήψη σύνδεσης» (μείνετε συνδεδεμένοι εκεί).'
+        : 'Ανοίξτε πρώτα <a href="https://astranov.eu" target="_blank" rel="noopener" style="color:var(--gold)">astranov.eu</a> → Λογιστές, ή συνδεθείτε απευθείας.';
+    }
+  },
+
   async refresh() {
-    if (!AstranovAuthBridge?.user) { this.toast('Συνδεθείτε με Google (ίδιος λογαριασμός Astranov)'); return; }
+    this.updateAuthGate();
+    if (!AstranovAuthBridge?.user) {
+      this.toast('Σύνδεση απαιτείται — Λήψη από Astranov ή Google');
+      return;
+    }
     await this.loadWhoami();
     const f = this.filters();
     try {
@@ -511,10 +530,28 @@ window.AuditorApp = {
       await this.refresh();
     });
     this.$('#applyBtn')?.addEventListener('click', () => this.refresh());
+    this.$('#authBridgeBtn')?.addEventListener('click', () => {
+      if (AstranovAuthBridge.requestAuthFromAstranov()) {
+        this.toast('Αίτημα σύνδεσης στο astranov.eu…');
+        AstranovAuthBridge._startAuthPoll?.();
+      } else {
+        this.toast('Ανοίξτε από astranov.eu → Λογιστές');
+        window.open('https://astranov.eu/?open=auditors', 'astranov_main');
+      }
+    });
+    this.$('#authDirectBtn')?.addEventListener('click', async () => {
+      const { error } = await AstranovAuthBridge.signInGoogle();
+      if (error) this.toast(error.message);
+    });
     this.$('#loginBtn')?.addEventListener('click', async () => {
       if (AstranovAuthBridge.user) {
         await AstranovAuthBridge.client.auth.signOut();
-        this.$('#loginBtn').textContent = 'Σύνδεση Google';
+        this.updateAuthGate();
+        return;
+      }
+      if (AstranovAuthBridge.requestAuthFromAstranov()) {
+        this.toast('Αίτημα σύνδεσης από Astranov…');
+        AstranovAuthBridge._startAuthPoll?.();
         return;
       }
       const { error } = await AstranovAuthBridge.signInGoogle();
@@ -533,15 +570,25 @@ window.AuditorApp = {
 
     await AstranovAuthBridge.init(config);
     this.bindForms();
-    this.switchTab(p.get('tab') || (p.get('from_app') === '1' ? 'company' : 'mine'));
-    window.addEventListener('astranov-auth', () => this.refresh());
+    this.updateAuthGate();
+
+    const fromApp = p.get('from_app') === '1';
+    if (fromApp) await new Promise((r) => setTimeout(r, 1200));
+
+    const tab = p.get('tab') || (fromApp && AstranovAuthBridge.user ? 'company' : 'mine');
+    this.switchTab(tab);
+    window.addEventListener('astranov-auth', () => {
+      this.updateAuthGate();
+      this.refresh();
+    });
 
     if (AstranovAuthBridge.user) {
-      this.$('#loginBtn').textContent = 'Αποσύνδεση';
       await this.refresh();
+    } else if (fromApp) {
+      AstranovAuthBridge._startAuthPoll?.();
+      setTimeout(() => this.refresh(), 2800);
     } else {
-      this.toast('Σύνδεση Google — ίδιος λογαριασμός με astranov.eu');
-      if (p.get('from_app') === '1') setTimeout(() => this.refresh(), 2500);
+      this.toast('Σύνδεση — άνοιγμα από astranov.eu ή Google');
     }
   },
 };
