@@ -1,9 +1,22 @@
 <!doctype html>
 <html lang="el">
 <head>
+  <script>
+  /* Μην ανοίγει ποτέ σε iframe πάνω από τη Γη — πλήρης σελίδα λογιστικής */
+  (function () {
+    var p = new URLSearchParams(location.search);
+    if ((p.get('shell') === '1' || p.get('embed') === '1') && window.self !== window.top) {
+      var u = new URL(location.href);
+      u.searchParams.delete('shell');
+      u.searchParams.delete('embed');
+      u.searchParams.set('from_app', '1');
+      window.top.location.replace(u.toString());
+    }
+  })();
+  </script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="astranov-build" content="20260708180000" />
+  <meta name="astranov-build" content="20260708200000" />
   <title>Astranov Auditors · Λογιστική ERP</title>
   <script src="core/astranov-shell.js"></script>
   <script src="core/superbooking-config.js"></script>
@@ -23,6 +36,15 @@
     Μηχανογραφημένο λογιστικό · σύνδεση με τον ίδιο λογαριασμό Astranov (Google) · ιδιοκτήτης &amp; λογιστές διαμορφώνουν τα πάντα εδώ.
   </div>
   <div class="tabs" id="tabs"></div>
+  <div id="authGate" class="auth-gate hidden">
+    <div class="auth-gate-inner">
+      <h2>Σύνδεση λογιστικού</h2>
+      <p id="authGateMsg">Ανοίξτε από το <strong>astranov.eu</strong> (Λογιστές) ενώ είστε συνδεδεμένοι — η σύνδεση γίνεται αυτόματα.</p>
+      <button id="authBridgeBtn" type="button" class="primary">Λήψη σύνδεσης από Astranov</button>
+      <button id="authDirectBtn" type="button">Google (απευθείας)</button>
+      <p class="note">Μην κλείνει η καρτέλα astranov.eu κατά το άνοιγμα · ίδιος λογαριασμός Google.</p>
+    </div>
+  </div>
   <div class="filters">
     <div><label>Από</label><input id="fFrom" type="date"></div>
     <div><label>Έως</label><input id="fTo" type="date"></div>
