@@ -1,74 +1,122 @@
 <!doctype html>
-<html lang="en">
+<html lang="el">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Astranov Auditors · Finance Portal</title>
+  <meta name="astranov-build" content="20260709000000" />
+  <title>Astranov Auditors · Λογιστική & Διαφάνεια</title>
   <script src="core/astranov-shell.js"></script>
   <script src="core/superbooking-config.js"></script>
   <style>
-    :root{--bg:#050b18;--panel:#0a1628;--line:rgba(73,183,255,.35);--text:#eef8ff;--muted:#9bc7e8;--gold:#49b7ff;--ok:#69f5d0;--warn:#ffb45f;font-family:Inter,system-ui,sans-serif}
+    :root{--bg:#050b18;--panel:#0a1628;--line:rgba(73,183,255,.35);--text:#eef8ff;--muted:#9bc7e8;--gold:#49b7ff;--ok:#69f5d0;--warn:#ffb45f;--green:#00dd99;font-family:Inter,system-ui,sans-serif}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}
-    .app{max-width:1100px;margin:0 auto;padding:12px 14px 80px}
-    .topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 0;position:sticky;top:0;background:rgba(5,11,24,.92);backdrop-filter:blur(10px);z-index:5}
-    .brand b{display:block;font-size:18px;letter-spacing:2px;color:#dff4ff}
+    .app{max-width:1280px;margin:0 auto;padding:12px 14px 80px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;position:sticky;top:0;background:rgba(5,11,24,.94);backdrop-filter:blur(10px);z-index:5;flex-wrap:wrap}
+    .brand b{display:block;font-size:18px;letter-spacing:1px;color:#dff4ff}
     .brand span{font-size:11px;color:var(--muted)}
+    .role-chip{font-size:10px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+    .role-chip.owner{border-color:var(--green);color:var(--green)}
+    .role-chip.auditor{border-color:var(--gold);color:var(--gold)}
     button,.btn{border:1px solid var(--line);background:rgba(73,183,255,.12);color:var(--text);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
+    button.primary{background:rgba(0,221,153,.15);border-color:rgba(0,221,153,.45);color:var(--green)}
     .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
-    .tab{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+    .tab{padding:8px 11px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;font-size:12px}
     .tab.active{background:rgba(73,183,255,.2);color:var(--gold);border-color:var(--gold)}
-    .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+    .tab.locked{opacity:.45;cursor:not-allowed}
+    .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
     input,select{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#071428;color:var(--text)}
-    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:12px 0}
+    label{font-size:10px;color:var(--muted);display:block;margin-bottom:4px}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:12px 0}
     .kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
-    .kpi b{display:block;font-size:20px;color:var(--gold)}
+    .kpi b{display:block;font-size:18px;color:var(--gold)}
     .kpi span{font-size:10px;color:var(--muted)}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px}
-    table{width:100%;border-collapse:collapse;font-size:12px}
+    .kpi.ok b{color:var(--ok)}
+    .kpi.warn b{color:var(--warn)}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px;overflow-x:auto}
+    .card h3{margin:0 0 10px;color:var(--gold);font-size:14px}
+    .card h4{margin:14px 0 6px;font-size:12px;color:var(--muted)}
+    table{width:100%;border-collapse:collapse;font-size:12px;min-width:520px}
     th,td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
-    th{color:var(--muted);font-size:10px;text-transform:uppercase}
+    th{color:var(--muted);font-size:10px;text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
+    td.num{text-align:right;font-family:ui-monospace,monospace}
     .status{padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:10px}
     .ok{color:var(--ok)}.warn{color:var(--warn)}
     .hidden{display:none!important}
-    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0a2038;border:1px solid var(--line);padding:10px 14px;border-radius:12px;display:none}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0a2038;border:1px solid var(--line);padding:10px 14px;border-radius:12px;display:none;z-index:20;max-width:90vw}
     .toast.show{display:block}
+    .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+    .bs-section{margin-bottom:12px}
+    .bs-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+    .bs-total{font-weight:700;color:var(--gold);border-top:1px solid var(--line);margin-top:6px;padding-top:8px}
+    .note{font-size:11px;color:var(--muted);line-height:1.5;margin:8px 0}
+    .banner{padding:10px 12px;border-radius:12px;border:1px solid rgba(0,221,153,.35);background:rgba(0,40,28,.35);font-size:12px;margin:10px 0}
   </style>
 </head>
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand"><b>Astranov Auditors</b><span>auditors.astranov.eu · central finance</span></div>
-    <button id="loginBtn" type="button">Sign in</button>
+    <div class="brand">
+      <b>Astranov Auditors</b>
+      <span>auditors.astranov.eu · γενικό καθολικό · ισολογισμός · διαφάνεια</span>
+    </div>
+    <span id="roleChip" class="role-chip">guest</span>
+    <button id="loginBtn" type="button">Σύνδεση</button>
   </header>
-  <div class="tabs">
-    <button class="tab active" data-tab="dashboard">Dashboard</button>
-    <button class="tab" data-tab="payments">Payments</button>
-    <button class="tab" data-tab="invoices">Invoices</button>
-    <button class="tab" data-tab="orders">Orders</button>
-    <button class="tab" data-tab="avc">AVC Ledger</button>
+
+  <div class="banner" id="accessBanner">
+    Συνδεθείτε με λογαριασμό Astranov — ιδιοκτήτης &amp; λογιστές βλέπουν πλήρη εικόνα εταιρείας · όλοι οι χρήστες τα δικά τους οικονομικά.
   </div>
+
+  <div class="tabs" id="tabs"></div>
+
   <div class="filters">
-    <div><label class="muted">From</label><input id="fFrom" type="date"></div>
-    <div><label class="muted">To</label><input id="fTo" type="date"></div>
-    <div><label class="muted">Vendor</label><select id="fVendor"><option value="">All vendors</option></select></div>
-    <div><label class="muted">Driver</label><select id="fDriver"><option value="">All drivers</option></select></div>
-    <div style="display:flex;align-items:end"><button id="applyBtn" type="button">Apply filters</button></div>
+    <div><label>Από</label><input id="fFrom" type="date"></div>
+    <div><label>Έως</label><input id="fTo" type="date"></div>
+    <div><label>Προμηθευτής</label><select id="fVendor"><option value="">Όλοι</option></select></div>
+    <div><label>Οδηγός</label><select id="fDriver"><option value="">Όλοι</option></select></div>
+    <div style="display:flex;align-items:end;gap:6px;flex-wrap:wrap">
+      <button id="applyBtn" type="button" class="primary">Εφαρμογή</button>
+      <button id="snapBtn" type="button" class="hidden">Αποθήκευση ισολογισμού</button>
+    </div>
   </div>
-  <section id="view-dashboard">
-    <div class="kpis" id="kpis"></div>
-    <div class="card"><h3 style="margin:0 0 8px;color:var(--gold)">Invoice health</h3><p id="invoiceHealth" class="muted"></p></div>
-    <div class="card"><h3 style="margin:0 0 8px">Recent orders</h3><div id="recentOrders"></div></div>
+
+  <section id="view-company" class="hidden">
+    <div class="kpis" id="companyKpis"></div>
+    <div class="grid2">
+      <div class="card" id="bsCurrent"></div>
+      <div class="card" id="bsProjected"></div>
+    </div>
+    <div class="card" id="taxCard"></div>
   </section>
-  <section id="view-payments" class="hidden"><div class="card" id="paymentsTable"></div></section>
+
+  <section id="view-ledger" class="hidden"><div class="card" id="ledgerTable"></div></section>
+  <section id="view-trial" class="hidden"><div class="card" id="trialTable"></div></section>
+  <section id="view-balance" class="hidden">
+    <div class="card" id="balanceDetail"></div>
+    <div class="card"><h3>Ιστορικό ισολογισμών</h3><div id="balanceHistory"></div></div>
+  </section>
   <section id="view-invoices" class="hidden"><div class="card" id="invoicesTable"></div></section>
+  <section id="view-tax" class="hidden"><div class="card" id="taxDetail"></div></section>
+  <section id="view-mine" class="hidden">
+    <div class="kpis" id="mineKpis"></div>
+    <div class="grid2">
+      <div class="card"><h3>Τα τιμολόγιά μου</h3><div id="mineInvoices"></div></div>
+      <div class="card"><h3>Οι παραγγελίες μου</h3><div id="mineOrders"></div></div>
+    </div>
+  </section>
   <section id="view-orders" class="hidden"><div class="card" id="ordersTable"></div></section>
   <section id="view-avc" class="hidden">
     <div class="kpis" id="avcKpis"></div>
-    <div class="card"><h3 style="margin:0 0 8px;color:var(--gold)">AVC Justice · 1 AVC = 1 EUR</h3><p id="avcHealth" class="muted"></p></div>
     <div class="card" id="avcTable"></div>
+  </section>
+  <section id="view-dashboard" class="hidden">
+    <div class="kpis" id="kpis"></div>
+    <div class="card"><h3>Κατάσταση τιμολογίων</h3><p id="invoiceHealth" class="note"></p></div>
+    <div class="card"><h3>Πρόσφατες παραγγελίες</h3><div id="recentOrders"></div></div>
   </section>
 </div>
 <div class="toast" id="toast"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="core/astranov-auth-bridge.js"></script>
 <script src="core/auditor-api.js"></script>
@@ -79,11 +127,28 @@ const CONFIG = applyCentralDatabase({
   supabaseUrl: window.ASTRANOV_CENTRAL_DB?.supabaseUrl || '',
   supabaseAnonKey: window.ASTRANOV_CENTRAL_DB?.supabaseAnonKey || '',
 });
+
+const TABS = [
+  { id: 'company', label: 'Εταιρεία', company: true },
+  { id: 'ledger', label: 'Γενικό Καθολικό', company: true },
+  { id: 'trial', label: 'Ισοζύγιο', company: true },
+  { id: 'balance', label: 'Ισολογισμός', company: true },
+  { id: 'invoices', label: 'Τιμολόγια', company: true },
+  { id: 'tax', label: 'Φόροι', company: true },
+  { id: 'mine', label: 'Τα οικονομικά μου', company: false },
+  { id: 'dashboard', label: 'Επισκόπηση', company: true },
+  { id: 'orders', label: 'Παραγγελίες', company: true },
+  { id: 'avc', label: 'AVC Ledger', company: true },
+];
+
+let state = { tab: 'mine', canCompany: false, who: null };
+
 const $ = (s) => document.querySelector(s);
 const esc = (s) => (s ?? '').toString().replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const money = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EUR';
-const avc = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' AVC (= ' + money(n).replace(' EUR', '') + ' EUR)';
-function toast(m) { $('#toast').textContent = m; $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'), 4000); }
+const money = (n) => Number(n || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+const avc = (n) => Number(n || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' AVC';
+
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 4500); }
 function filters() {
   return {
     from: $('#fFrom').value || null,
@@ -92,111 +157,263 @@ function filters() {
     driver_id: $('#fDriver').value || null,
   };
 }
-function switchTab(t) {
-  document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
-  ['dashboard', 'payments', 'invoices', 'orders', 'avc'].forEach((v) => {
-    $('#view-' + v).classList.toggle('hidden', v !== t);
+
+function renderTabs() {
+  const box = $('#tabs');
+  box.innerHTML = TABS.map((t) => {
+    const locked = t.company && !state.canCompany;
+    const cls = 'tab' + (state.tab === t.id ? ' active' : '') + (locked ? ' locked' : '');
+    return `<button type="button" class="${cls}" data-tab="${t.id}" ${locked ? 'title="Απαιτείται ρόλος λογιστή/ιδιοκτήτη"' : ''}>${esc(t.label)}</button>`;
+  }).join('');
+  box.querySelectorAll('.tab').forEach((b) => {
+    b.onclick = () => {
+      const t = TABS.find((x) => x.id === b.dataset.tab);
+      if (t?.company && !state.canCompany) { toast('Πλήρη εικόνα εταιρείας — μόνο ιδιοκτήτης & λογιστές'); switchTab('mine'); return; }
+      switchTab(b.dataset.tab);
+    };
   });
 }
-function renderKpis(k) {
-  if (!k) return;
-  $('#kpis').innerHTML = [
-    ['orders', k.orders], ['goods', money(k.goods_eur)], ['delivery', money(k.delivery_eur)],
-    ['platform 3%', money(k.platform_eur)], ['driver payouts', money(k.driver_payouts_eur)],
-    ['invoices sent', k.invoices_sent], ['pending', k.invoices_pending],
-  ].map(([l, v]) => `<div class="kpi"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('');
-  $('#invoiceHealth').textContent = k.invoices_pending
-    ? `${k.invoices_pending} invoice(s) need review · ${k.invoices_sent} issued this period`
-    : `All ${k.invoices_sent} invoices issued for selected period`;
+
+function switchTab(t) {
+  state.tab = t;
+  renderTabs();
+  TABS.forEach((v) => {
+    const el = $('#view-' + v.id);
+    if (el) el.classList.toggle('hidden', v.id !== t);
+  });
+  $('#snapBtn').classList.toggle('hidden', t !== 'balance' || !state.canCompany);
 }
+
+function tableWrap(head, body) {
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body || '<tr><td colspan="99" class="muted">Δεν υπάρχουν εγγραφές</td></tr>'}</tbody></table>`;
+}
+
+function renderBalanceSection(title, lines, total) {
+  const rows = (lines || []).map((l) => `<div class="bs-row"><span>${esc(l.label)}</span><span>${money(l.amount)}</span></div>`).join('');
+  return `<div class="bs-section"><h4>${esc(title)}</h4>${rows}<div class="bs-row bs-total"><span>Σύνολο</span><span>${money(total)}</span></div></div>`;
+}
+
+function renderBalanceSheet(el, data, title) {
+  if (!data || data.error) { el.innerHTML = `<p class="warn">${esc(data?.error || 'Δεν διαθέσιμο')}</p>`; return; }
+  const proj = data.projected ? '<span class="warn"> · προβλεπόμενος</span>' : '';
+  let extra = '';
+  if (data.projected_additions) {
+    extra = `<p class="note">Εκκρεμείς παραγγελίες: ${data.projected_additions.pending_orders} · ${money(data.projected_additions.pending_revenue_eur)}</p>`;
+  }
+  el.innerHTML = `<h3>${esc(title)}${proj} · ${esc(data.as_of || '')}</h3>${extra}`
+    + renderBalanceSection('Ενεργητικό', data.lines?.assets, data.assets)
+    + renderBalanceSection('Παθητικό', data.lines?.liabilities, data.liabilities)
+    + renderBalanceSection('Κεφάλαιο & Αποτελέσματα', data.lines?.equity, data.equity)
+    + `<p class="note ${data.balanced ? 'ok' : 'warn'}">${data.balanced ? 'Ισοσκeliσμένος ισολογισμός ✓' : 'Ελέγξτε ισοζύγιο — μικρή απόκλιση'}</p>`;
+}
+
 function tableOrders(rows) {
-  if (!rows?.length) return '<p class="muted">No orders</p>';
-  return '<table><thead><tr><th>ID</th><th>Vendor</th><th>Driver</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody>'
-    + rows.map((o) => {
-      const c = o.calc || {};
-      const total = c.total_eur ?? c.total_avc ?? c.goods_eur ?? 0;
-      return `<tr><td>${esc(o.short_id || o.id?.slice(0, 8))}</td><td>${esc(o.vendors?.name || o.vendor_id?.slice(0, 8))}</td><td>${esc(o.driver_name || '-')}</td><td>${money(total)}</td><td><span class="status">${esc(o.status)}</span></td><td>${esc((o.created_at || '').slice(0, 10))}</td></tr>`;
-    }).join('') + '</tbody></table>';
+  if (!rows?.length) return '<p class="note">Καμία παραγγελία</p>';
+  const head = '<th>ID</th><th>Κατάστημα</th><th>Οδηγός</th><th>Σύνολο</th><th>Κατάσταση</th><th>Ημ/νία</th>';
+  const body = rows.map((o) => {
+    const c = o.calc || {};
+    const total = c.total_eur ?? c.total_avc ?? c.goods_eur ?? 0;
+    return `<tr><td>${esc(o.short_id || String(o.id || '').slice(0, 8))}</td><td>${esc(o.vendors?.name || o.vendor_id?.slice?.(0, 8) || '-')}</td><td>${esc(o.driver_name || '-')}</td><td class="num">${money(total)}</td><td><span class="status">${esc(o.status)}</span></td><td>${esc(String(o.created_at || '').slice(0, 10))}</td></tr>`;
+  }).join('');
+  return tableWrap(head, body);
 }
-function renderAvcKpis(k, chainValid) {
-  if (!k) return;
-  $('#avcKpis').innerHTML = [
-    ['ledger entries', k.entries], ['minted', avc(k.minted_avc)], ['spent', avc(k.spent_avc)],
-    ['chain', chainValid ? 'valid ✓' : 'BREAK ✗'],
-  ].map(([l, v]) => `<div class="kpi"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('');
-  $('#avcHealth').textContent = chainValid
-    ? 'Transparent work-mint ledger · peg 1:1 EUR · no fiat keyboard injection'
-    : 'Chain integrity warning — investigate prev_hash links';
-}
-function tableAvc(rows) {
-  if (!rows?.length) return '<p class="muted">No AVC ledger entries</p>';
-  return '<table><thead><tr><th>#</th><th>Δ AVC</th><th>Work</th><th>Order</th><th>Note</th><th>Date</th></tr></thead><tbody>'
-    + rows.map((e) => {
-      const sign = Number(e.delta_avc) >= 0 ? '+' : '';
-      return `<tr><td>${esc(e.seq)}</td><td class="${Number(e.delta_avc) >= 0 ? 'ok' : ''}">${sign}${esc(Number(e.delta_avc).toFixed(2))}</td><td>${esc(e.work_type)}</td><td>${esc(e.order_id || '-')}</td><td>${esc((e.public_note || '').slice(0, 48))}</td><td>${esc((e.created_at || '').slice(0, 16).replace('T', ' '))}</td></tr>`;
-    }).join('') + '</tbody></table>';
-}
+
 function tableInvoices(rows) {
-  if (!rows?.length) return '<p class="muted">No invoices</p>';
-  return '<table><thead><tr><th>Mark</th><th>Vendor</th><th>Subtotal</th><th>Delivery</th><th>Platform</th><th>Total</th><th>Status</th></tr></thead><tbody>'
-    + rows.map((i) => `<tr><td>${esc(i.mark || i.id)}</td><td>${esc(i.vendor_name)}</td><td>${money(i.subtotal)}</td><td>${money(i.delivery_fee)}</td><td>${money(i.platform_fee)}</td><td>${money(i.total)}</td><td class="${i.status === 'issued' ? 'ok' : 'warn'}">${esc(i.status)}</td></tr>`).join('')
-    + '</tbody></table>';
+  if (!rows?.length) return '<p class="note">Κανένα τιμολόγιο</p>';
+  const head = '<th>MARK</th><th>Προμηθευτής</th><th>Καθαρή</th><th>Διανομή</th><th>Πλατφόρμα</th><th>Σύνολο</th><th>Κατάσταση</th>';
+  const body = rows.map((i) => `<tr><td>${esc(i.mark || i.id)}</td><td>${esc(i.vendor_name)}</td><td class="num">${money(i.subtotal)}</td><td class="num">${money(i.delivery_fee)}</td><td class="num">${money(i.platform_fee)}</td><td class="num">${money(i.total)}</td><td class="${i.status === 'issued' ? 'ok' : 'warn'}">${esc(i.status)}</td></tr>`).join('');
+  return tableWrap(head, body);
 }
-async function loadFilters() {
+
+function tableLedger(rows) {
+  if (!rows?.length) return '<p class="note">Καμία εγγραφή — δημιουργούνται αυτόματα από τιμολόγια</p>';
+  const head = '<th>Ημ/νία</th><th>Λογαριασμός</th><th>Χρέωση</th><th>Πίστωση</th><th>Περιγραφή</th><th>Πηγή</th>';
+  const body = rows.map((r) => `<tr><td>${esc(String(r.entry_date || '').slice(0, 10))}</td><td>${esc(r.account_code)}</td><td class="num">${r.debit ? money(r.debit) : ''}</td><td class="num">${r.credit ? money(r.credit) : ''}</td><td>${esc((r.memo || '').slice(0, 56))}</td><td>${esc(r.source_type || '')}</td></tr>`).join('');
+  return tableWrap(head, body);
+}
+
+function tableTrial(tb) {
+  if (!tb?.rows?.length) return '<p class="note">Κενό ισοζύγιο</p>';
+  const head = '<th>Κωδικός</th><th>Λογαριασμός</th><th>Χρέωση</th><th>Πίστωση</th><th>Υπόλοιπο</th>';
+  const body = tb.rows.map((r) => `<tr><td>${esc(r.code)}</td><td>${esc(r.name_el)}</td><td class="num">${r.debit ? money(r.debit) : ''}</td><td class="num">${r.credit ? money(r.credit) : ''}</td><td class="num">${money(r.balance)}</td></tr>`).join('')
+    + `<tr><td colspan="2"><strong>Σύνολα</strong></td><td class="num"><strong>${money(tb.total_debit)}</strong></td><td class="num"><strong>${money(tb.total_credit)}</strong></td><td class="${tb.balanced ? 'ok' : 'warn'}">${tb.balanced ? '✓' : 'Διαφορά'}</td></tr>`;
+  return tableWrap(head, body) + (tb.user_avc_liabilities ? `<p class="note">Υποχρεώσεις AVC χρηστών: ${avc(tb.user_avc_liabilities)}</p>` : '');
+}
+
+function renderTax(t) {
+  if (!t) return '';
+  return `<h3>Εκτίμηση φόρων</h3><p class="note">${esc(t.note || '')}</p>`
+    + `<div class="kpis">${[
+      ['Έσοδα περιόδου', money(t.period_revenue_eur)],
+      ['ΦΠΑ πληρωτέο', money(t.vat_payable_eur)],
+      ['Εκτιμ. κέρδος', money(t.estimated_profit_eur)],
+      ['Φόρος εισοδήματος 22%', money(t.corporate_tax_22pct_eur)],
+      ['Εισφορά αλληλεγγύης 5%', money(t.solidarity_5pct_eur)],
+      ['Σύνολο εκτίμησης', money(t.total_tax_estimate_eur)],
+    ].map(([l, v]) => `<div class="kpi"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('')}</div>`;
+}
+
+async function loadWhoami() {
   try {
-    const p = await AuditorApi.call(CONFIG, 'payments', filters());
-    $('#fVendor').innerHTML = '<option value="">All vendors</option>' + (p.vendors || []).map((v) => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');
-    $('#fDriver').innerHTML = '<option value="">All drivers</option>' + (p.drivers || []).map((d) => `<option value="${esc(d.id)}">${esc(d.display_name || 'Driver')}</option>`).join('');
+    state.who = await AuditorApi.call(CONFIG, 'whoami', {});
+    state.canCompany = !!state.who.can_company;
+    const chip = $('#roleChip');
+    if (state.who.is_owner) { chip.textContent = 'OWNER · πλήρη λογιστική'; chip.className = 'role-chip owner'; }
+    else if (state.who.is_auditor) { chip.textContent = 'AUDITOR · πλήρη λογιστική'; chip.className = 'role-chip auditor'; }
+    else { chip.textContent = 'USER · τα δικά μου'; chip.className = 'role-chip'; }
+    $('#accessBanner').innerHTML = state.canCompany
+      ? '<strong>Πλήρη λογιστική εικόνα Astranov</strong> — γενικό καθολικό, ισοζύγιο, τρέχων &amp; προβλεπόμενος ισολογισμός, ιστορικό, φόροι.'
+      : 'Βλέπετε <strong>τα δικά σας</strong> οικονομικά · ιδιοκτήτης &amp; λογιστές έχουν πλήρη εικόνα εταιρείας.';
+    if (!state.canCompany && ['company', 'ledger', 'trial', 'balance', 'tax'].includes(state.tab)) switchTab('mine');
+    renderTabs();
   } catch (e) { console.warn(e); }
 }
+
+async function loadFilters() {
+  if (!state.canCompany) return;
+  try {
+    const p = await AuditorApi.call(CONFIG, 'payments', filters());
+    $('#fVendor').innerHTML = '<option value="">Όλοι</option>' + (p.vendors || []).map((v) => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');
+    $('#fDriver').innerHTML = '<option value="">Όλοι</option>' + (p.drivers || []).map((d) => `<option value="${esc(d.id)}">${esc(d.display_name || 'Οδηγός')}</option>`).join('');
+  } catch (e) { console.warn(e); }
+}
+
 async function refresh() {
-  if (!AstranovAuthBridge?.user) { toast('Sign in — auditor or accountant role required'); return; }
+  if (!AstranovAuthBridge?.user) { toast('Συνδεθείτε με λογαριασμό Astranov'); return; }
+  await loadWhoami();
   const f = filters();
   try {
-    const dash = await AuditorApi.call(CONFIG, 'dashboard', f);
-    renderKpis(dash.kpis);
-    $('#recentOrders').innerHTML = tableOrders(dash.recent_orders);
-    const pay = await AuditorApi.call(CONFIG, 'payments', f);
-    $('#paymentsTable').innerHTML = '<h3>Payment ledger</h3>' + tableOrders(pay.orders)
-      + '<h3 style="margin-top:14px">Payout events</h3><p class="muted">' + (pay.events || []).slice(0, 30).map((e) => esc(e.detail || e.action)).join('<br>') + '</p>';
-    const inv = await AuditorApi.call(CONFIG, 'invoices', f);
-    $('#invoicesTable').innerHTML = tableInvoices(inv.rows);
-    const ord = await AuditorApi.call(CONFIG, 'orders', f);
-    $('#ordersTable').innerHTML = tableOrders(ord.rows);
-    const avcData = await AuditorApi.call(CONFIG, 'avc_ledger', f);
-    renderAvcKpis(avcData.kpis, avcData.chain_valid);
-    $('#avcTable').innerHTML = tableAvc(avcData.rows);
+    const mine = await AuditorApi.call(CONFIG, 'my_financials', f);
+    $('#mineKpis').innerHTML = [
+      ['Υπόλοιπο AVC', avc(mine.avc_balance)],
+      ['Ισοδύναμο EUR', money(mine.eur_equivalent)],
+      ['Τιμολόγια', mine.summary?.invoices_count],
+      ['Παραγγελίες', mine.summary?.orders_count],
+      ['Δαπάνες', avc(mine.summary?.spent_avc)],
+    ].map(([l, v]) => `<div class="kpi ok"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('');
+    $('#mineInvoices').innerHTML = tableInvoices(mine.invoices);
+    $('#mineOrders').innerHTML = tableOrders(mine.orders);
+
+    if (state.canCompany) {
+      const summary = await AuditorApi.call(CONFIG, 'company_summary', f);
+      const bs = summary.balance_sheet;
+      const proj = summary.projected;
+      $('#companyKpis').innerHTML = [
+        ['Ενεργητικό', money(bs?.assets)],
+        ['Παθητικό', money(bs?.liabilities)],
+        ['Κεφάλαιο', money(bs?.equity)],
+        ['ΦΠΑ', money(summary.tax?.vat_payable_eur)],
+        ['Εκτίμ. φόροι', money(summary.tax?.total_tax_estimate_eur)],
+      ].map(([l, v]) => `<div class="kpi"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('');
+      renderBalanceSheet($('#bsCurrent'), bs, 'Τρέχων ισολογισμός');
+      renderBalanceSheet($('#bsProjected'), proj, 'Προβλεπόμενος ισολογισμός');
+      $('#taxCard').innerHTML = renderTax(summary.tax);
+
+      const gl = await AuditorApi.call(CONFIG, 'general_ledger', f);
+      $('#ledgerTable').innerHTML = '<h3>Γενικό Καθολικό</h3><p class="note">Αυτόματες εγγραφές από τιμολόγια + χειροκίνητες · ' + esc(gl.source || '') + '</p>' + tableLedger(gl.rows);
+
+      const tb = summary.trial_balance || await AuditorApi.call(CONFIG, 'trial_balance', f);
+      $('#trialTable').innerHTML = '<h3>Ισοζύγιο</h3>' + tableTrial(tb);
+
+      renderBalanceSheet($('#balanceDetail'), bs, 'Τρέχων ισολογισμός');
+      const hist = await AuditorApi.call(CONFIG, 'balance_sheet_history', f);
+      $('#balanceHistory').innerHTML = (hist.rows || []).length
+        ? tableWrap('<th>Περίοδος</th><th>Τύπος</th><th>Ενεργητικό</th><th>Παθητικό</th><th>Κεφάλαιο</th>',
+          hist.rows.map((r) => `<tr><td>${esc(r.period_end)}</td><td>${esc(r.snapshot_type)}</td><td class="num">${money(r.assets)}</td><td class="num">${money(r.liabilities)}</td><td class="num">${money(r.equity)}</td></tr>`).join(''))
+        : '<p class="note">Δεν υπάρχουν αποθηκευμένοι ισολογισμοί — πατήστε «Αποθήκευση ισολογισμού»</p>';
+
+      const inv = await AuditorApi.call(CONFIG, 'invoices', f);
+      $('#invoicesTable').innerHTML = '<h3>Τιμολόγια</h3>' + tableInvoices(inv.rows);
+      $('#taxDetail').innerHTML = renderTax(summary.tax);
+
+      const dash = await AuditorApi.call(CONFIG, 'dashboard', f);
+      renderKpis(dash.kpis);
+      $('#recentOrders').innerHTML = tableOrders(dash.recent_orders);
+
+      const ord = await AuditorApi.call(CONFIG, 'orders', f);
+      $('#ordersTable').innerHTML = tableOrders(ord.rows);
+
+      const avcData = await AuditorApi.call(CONFIG, 'avc_ledger', f);
+      $('#avcKpis').innerHTML = [
+        ['Εγγραφές', avcData.kpis?.entries],
+        ['Minted', avc(avcData.kpis?.minted_avc)],
+        ['Spent', avc(avcData.kpis?.spent_avc)],
+        ['Chain', avcData.chain_valid ? 'valid ✓' : 'BREAK ✗'],
+      ].map(([l, v]) => `<div class="kpi ${l === 'Chain' && v !== 'valid ✓' ? 'warn' : ''}"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('');
+      $('#avcTable').innerHTML = (avcData.rows || []).length
+        ? tableWrap('<th>#</th><th>Δ AVC</th><th>Work</th><th>Order</th><th>Σημείωση</th><th>Ημ/νία</th>',
+          avcData.rows.map((e) => {
+            const sign = Number(e.delta_avc) >= 0 ? '+' : '';
+            return `<tr><td>${esc(e.seq)}</td><td class="num ${Number(e.delta_avc) >= 0 ? 'ok' : ''}">${sign}${Number(e.delta_avc).toFixed(2)}</td><td>${esc(e.work_type)}</td><td>${esc(e.order_id || '-')}</td><td>${esc((e.public_note || '').slice(0, 48))}</td><td>${esc(String(e.created_at || '').slice(0, 16).replace('T', ' '))}</td></tr>`;
+          }).join(''))
+        : `<p class="note">${esc(avcData.note || 'Κενό AVC ledger')}</p>`;
+    }
   } catch (e) {
     toast(e.message || String(e));
   }
 }
+
+function renderKpis(k) {
+  if (!k) return;
+  $('#kpis').innerHTML = [
+    ['Παραγγελίες', k.orders], ['Αγαθά', money(k.goods_eur)], ['Διανομή', money(k.delivery_eur)],
+    ['Πλατφόρμα 3%', money(k.platform_eur)], ['Οδηγοί', money(k.driver_payouts_eur)],
+    ['Τιμολόγια', k.invoices_sent], ['Εκκρεμή', k.invoices_pending],
+  ].map(([l, v]) => `<div class="kpi"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('');
+  $('#invoiceHealth').textContent = k.invoices_pending
+    ? `${k.invoices_pending} τιμολόγιο(α) χρειάζονται έλεγχο · ${k.invoices_sent} εκδοθέντα`
+    : `Όλα τα ${k.invoices_sent} τιμολόγια εκδοθέντα για την περίοδο`;
+}
+
+async function signIn() {
+  if (!AstranovAuthBridge.client) { toast('Auth unavailable'); return; }
+  if (AstranovAuthBridge.user) {
+    await AstranovAuthBridge.client.auth.signOut();
+    $('#loginBtn').textContent = 'Σύνδεση';
+    state.canCompany = false;
+    renderTabs();
+    return;
+  }
+  const { error } = await AstranovAuthBridge.client.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: location.origin + location.pathname },
+  });
+  if (error) toast(error.message);
+}
+
 async function init() {
   const p = new URLSearchParams(location.search);
+  const d = new Date();
   if (p.get('from')) $('#fFrom').value = p.get('from');
   if (p.get('to')) $('#fTo').value = p.get('to');
-  if (p.get('vendor_id')) setTimeout(() => { $('#fVendor').value = p.get('vendor_id'); }, 800);
-  const d = new Date();
-  if (!$('#fFrom').value) { const m = new Date(d.getFullYear(), d.getMonth(), 1); $('#fFrom').value = m.toISOString().slice(0, 10); }
+  if (!$('#fFrom').value) $('#fFrom').value = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
   if (!$('#fTo').value) $('#fTo').value = d.toISOString().slice(0, 10);
+
   await AstranovAuthBridge.init(CONFIG);
-  $('#loginBtn').onclick = async () => {
-    if (AstranovAuthBridge.user) {
-      await AstranovAuthBridge.client.auth.signOut();
-      $('#loginBtn').textContent = 'Sign in';
-      return;
-    }
-    const email = prompt('Auditor email');
-    const password = prompt('Password');
-    if (!email || !password) return;
-    const { error } = await AstranovAuthBridge.client.auth.signInWithPassword({ email, password });
-    if (error) toast(error.message); else { $('#loginBtn').textContent = 'Logout'; await refresh(); }
-  };
-  if (AstranovAuthBridge.user) { $('#loginBtn').textContent = 'Logout'; await loadFilters(); await refresh(); }
-  else toast('Sign in with auditor or accountant role');
-  document.querySelectorAll('.tab').forEach((b) => b.onclick = () => switchTab(b.dataset.tab));
+  renderTabs();
+  switchTab(p.get('tab') || 'mine');
+
+  $('#loginBtn').onclick = signIn;
   $('#applyBtn').onclick = refresh;
-  if (p.get('tab')) switchTab(p.get('tab'));
+  $('#snapBtn').onclick = async () => {
+    try {
+      const r = await AuditorApi.call(CONFIG, 'snapshot_save', filters());
+      toast(r.ok ? 'Ισολογισμός αποθηκεύτηκε · ' + (r.snapshot?.period_end || '') : (r.error || 'Σφάλμα'));
+      await refresh();
+    } catch (e) { toast(e.message); }
+  };
+
+  window.addEventListener('astranov-auth', () => refresh());
+
+  if (AstranovAuthBridge.user) {
+    $('#loginBtn').textContent = 'Αποσύνδεση';
+    await loadFilters();
+    await refresh();
+  } else {
+    toast('Σύνδεση Google — ίδιος λογαριασμός με astranov.eu');
+  }
 }
+
 document.addEventListener('DOMContentLoaded', () => init().catch((e) => toast(e.message)));
 </script>
 </body>
